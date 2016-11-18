@@ -1,0 +1,20 @@
+{
+  "name": "github-facebook-bot",
+  "version": "1.0.0",
+  "description": "Facebook Messenger Bot",
+  "main": "y",
+  "scripts": {
+    "test": "n"
+  },
+  "repository": {
+    "type": "git",
+    "url": "y"
+  },
+  "keywords": [
+    "facebook",
+    "messenger",
+    "bot"
+  ],
+  "author": "Nande Konst",
+  "license": "UNLICENSED"
+}
