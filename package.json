@@ -16,5 +16,10 @@
     "bot"
   ],
   "author": "Nande Konst",
-  "license": "UNLICENSED"
+  
+  "license": "UNLICENSED",
+  
+  "dependencies": {
+   "express": "3.8.x"
+  }
 }
