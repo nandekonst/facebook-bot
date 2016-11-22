@@ -9,6 +9,11 @@ const HELP_BUTTON = "DEVELOPER_DEFINED_PAYLOAD_FOR_HELP";
 const FAQ_BUTTON = "DEVELOPER_DEFINED_PAYLOAD_FOR_FAQ";
 const DATA_BUTTON = "DEVELOPER_DEFINED_PAYLOAD_FOR_DATA";
 var token;
+var text;
+var prop_city;
+var prop_type;
+var prop_rooms;
+var prop_price;
 
 app.set('port', (process.env.PORT || 8080))
 app.use(bodyParser.urlencoded({extended: false}))
@@ -20,7 +25,6 @@ app.get('/', function(req, res){
 
 //Make data exchange between App and Facebook over the webhook possible
 app.post('/webhook', function (req, res) {
-  console.log('test');
   var data = req.body;
 
 
@@ -165,11 +169,54 @@ function receivedAuthentication(messagingEvent) {
 function receivedMessage(messagingEvent) {
   var senderID = messagingEvent.sender.id;
   var recipientId = messagingEvent.recipient.id;
-   console.log('Received a message from id: ', senderID + recipientId)
 
-    var text = messagingEvent.message.text
+   console.log('Received a message from id: ', senderID + recipientId)
+    let message = messagingEvent.message;
+    text = messagingEvent.message.text.toLowerCase();
+    console.log("Dit is de tekst" + text)
     var senderID = messagingEvent.sender.id;
-    var data = {user_id:senderID, message:text};
+    
+     function handleUserInput(){
+
+
+        if (text && message) {
+        var greets = ['hi', 'hello', 'hi there', 'good morning', 'good afternoon', 'good evening'] 
+        var city = ['nijmegen', 'amsterdam', 'arnhem']
+        var type = ['appartment', 'house', 'studio']
+        var rooms = ['1' , '2' , '3', '4' , '5', '6', '7']
+        var price = ['250000', '350000', '450000']
+           if(greets.indexOf(text) > -1) {
+           sendMessage(senderID, "Hi I am your Real Estate assistent, please let me know in which city you are looking for a place");
+           }else if (city.indexOf(text) > -1){
+            prop_city = text;
+
+            sendMessage(senderID, "So you are looking for a place in " + text + ".Tell me if you are looking for appartment, studio or house")  
+           }else if (type.indexOf(text) > -1){
+            prop_type = text;
+            //console.log("property_type" + prop_type)
+            sendMessage(senderID, "You are looking for " + text + "Tell me the number of rooms your ideal place should have")
+           }else if(rooms.indexOf(text) > -1){
+            prop_rooms = text;
+
+            sendMessage(senderID, "The number of rooms is "  + text + " What would be your maximum price?")
+           }else if(price.indexOf(text) > -1){
+            prop_price = text;
+
+            sendMessage(senderID, "Ok, I have got that, let me see what I can find for you...")
+           }else{
+            sendMessage(senderID, "Sorry I am not that smart yet, no sentences please, only give me the name of city, type of house and number of rooms")
+
+           }
+
+        }
+        
+
+
+     } 
+
+
+
+    var data = {user_id:senderID, city:prop_city, type:prop_type, rooms:prop_rooms, price:prop_price};
     var headers = {
     'Authorization':'Bearer ' + token
     }
@@ -178,24 +225,35 @@ function receivedMessage(messagingEvent) {
     headers: headers,
     form: data
     };
+
+
+  
+
+     
+     
+ 
+
+     handleUserInput();
+
+
+   
    // Store the user_id and the message in Jexia.
    request.post(options, callbackUserId)
-  
 
 }
 
 function callbackUserId(error, response, body){
     if(!error && response.statusCode == 200){
           var body = body
-          console.log("this is the body" + body)
+
       }else{
 
-        console.log("something went wrong")
-        console.log("statuscode" + response.statuscode)
+          console.log("this is the body" + body)
 
       }
 
   } 
+
 
 
 
