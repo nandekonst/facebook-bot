@@ -216,6 +216,10 @@ function receivedMessage(messagingEvent) {
 
 
 
+
+
+
+
     var data = {user_id:senderID, city:prop_city, type:prop_type, rooms:prop_rooms, price:prop_price};
     var headers = {
     'Authorization':'Bearer ' + token
