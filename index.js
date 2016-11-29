@@ -14,12 +14,13 @@ var prop_city;
 var prop_type;
 var prop_rooms;
 var prop_price;
+var jexia_user_id;
 
 app.set('port', (process.env.PORT || 8080))
 app.use(bodyParser.urlencoded({extended: false}))
 app.use (bodyParser.json())
 app.get('/', function(req, res){
-	res.send(req.query['hub.challenge'])
+  res.send(req.query['hub.challenge'])
 
 })
 
@@ -65,15 +66,15 @@ app.post('/webhook', function (req, res) {
 
 app.get('/webhook', function(req, res){
 
-	if(req.query['hub.verify_token'] === 'nande'){
-		res.send(req.query['hub.challenge'])
+  if(req.query['hub.verify_token'] === 'nande'){
+    res.send(req.query['hub.challenge'])
 
-	}
-	res.send('Error, wrong token')
+  }
+  res.send('Error, wrong token')
 })
 app.listen(app.get('port'), function(){
 
-	console.log('running on port', app.get('port'))
+  console.log('running on port', app.get('port'))
 })
 
 
@@ -199,10 +200,25 @@ function receivedMessage(messagingEvent) {
             prop_rooms = text;
 
             sendMessage(senderID, "The number of rooms is "  + text + " What would be your maximum price?")
+
            }else if(price.indexOf(text) > -1){
             prop_price = text;
 
             sendMessage(senderID, "Ok, I have got that, let me see what I can find for you...")
+             var data = {user_id:senderID, city:prop_city, type:prop_type, rooms:prop_rooms, price:prop_price};
+             var headers = {
+            'Authorization':'Bearer ' + token
+              }
+              var options = {
+              url: 'https://afe21f70-58ac-11e6-9400-bf08cc0779e0.app.jexia.com/User',
+              headers: headers,
+              form: data
+              };
+
+
+             // Store the user_id and the message in Jexia.
+            request.post(options, callbackUserId)
+
            }else{
             sendMessage(senderID, "Sorry I am not that smart yet, no sentences please, only give me the name of city, type of house and number of rooms")
 
@@ -217,34 +233,49 @@ function receivedMessage(messagingEvent) {
 
 
 
-
-
-
-    var data = {user_id:senderID, city:prop_city, type:prop_type, rooms:prop_rooms, price:prop_price};
-    var headers = {
-    'Authorization':'Bearer ' + token
-    }
-    var options = {
-    url: 'https://afe21f70-58ac-11e6-9400-bf08cc0779e0.app.jexia.com/User',
-    headers: headers,
-    form: data
-    };
-
-
-  
-
-     
-     
- 
-
      handleUserInput();
 
 
    
-   // Store the user_id and the message in Jexia.
-   request.post(options, callbackUserId)
+
+
+   //Get user Data from Jexia
+  function getUserData(userid){
+
+  var headers = {
+    'Authorization':'Bearer ' + token
+    }
+  var options = {
+
+    url: 'https://afe21f70-58ac-11e6-9400-bf08cc0779e0.app.jexia.com/user?user_id=' + userid,
+    method: 'GET',
+    headers: headers
+    
+  }
+  request.get(options, userDataCallBack)
+  }
+
+  function userDataCallBack(error, response, body){
+
+
+   jexia_user_id = response ;
+
+   console.log("USERID" + JSON.stringify(jexia_user_id));
+
+    console.log("SENDERID" + senderID);
+
+  }
+
+
+
+
+getUserData('1197247203681649');
+
 
 }
+
+
+
 
 function callbackUserId(error, response, body){
     if(!error && response.statusCode == 200){
@@ -257,8 +288,6 @@ function callbackUserId(error, response, body){
       }
 
   } 
-
-
 
 
 //Message was delivered to the user
@@ -389,41 +418,3 @@ function callSendAPI(messageData) {
 
 
 
-//Get user Data from Jexia
-function getUserData(userid){
-
-var auth_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE0Nzg2MTUxMTcsImV4cCI6MTQ3ODYyMjMxN30.6nAxwuMuvhx2BzkG4C5-azbKgUcIuVKnLVplAs_QYOg"
-var headers = {
-    'Authorization':'Bearer ' + TOKEN
-    }
-var options = {
-
-    url: 'https://afe21f70-58ac-11e6-9400-bf08cc0779e0.app.jexia.com/user?user_id=' + userid,
-    method: 'GET',
-    headers: headers
-    
-}
-
-request.get(options, userDataCallBack)
-}
-
-function userDataCallBack(error, response, body){
-
-  if(!error && response.statusCode == 200){
-     
-    var user_object = JSON.parse(body);
-
-   sendMessage(user_object[0].user_id, JSON.stringify(body));
-  } else {
-    console.log("this is going wrong");
-
-  }
-
-}
-
-//get back input
-function getUserInput(userid){
-
-
-
-}
