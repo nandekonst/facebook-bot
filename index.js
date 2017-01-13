@@ -87,13 +87,13 @@ app.post('/webhook', function (req, res) {
 
 //Message was delivered to the user
 function receivedDeliveryConfirmation(messagingEvent) {
-   senderID = messagingEvent.sender.id;
+   var senderID = messagingEvent.sender.id;
    console.log('Received delivery confirmation from id: ', senderID)
 }
 
 //Message was read by the user
 function receivedMessageReadConfirmation(messagingEvent) {
-   senderID = messagingEvent.sender.id;
+   var senderID = messagingEvent.sender.id;
    console.log('Received message read confirmation from id: ', senderID)
 }
 
@@ -101,8 +101,8 @@ function receivedMessageReadConfirmation(messagingEvent) {
 function receivedMessage(messagingEvent) {
   var senderID = messagingEvent.sender.id;
   var recipientID = messagingEvent.recipient.id;
-  let timeOfMessage = messagingEvent.timestamp;
-  let message = messagingEvent.message;
+  var timeOfMessage = messagingEvent.timestamp;
+  var message = messagingEvent.message;
 
   console.log('Received a message for user %d and page %d at %d with message:', senderID, recipientID, timeOfMessage);
   console.log(JSON.stringify(message));
@@ -110,18 +110,27 @@ function receivedMessage(messagingEvent) {
   var userRecord = getJexiaUserRecord(senderID);
   
   var userRec = userRecord.then(function(data){
-  var userRecorddata = data;
+  var userRecorddata = data[0].user_id;
+  var userRecordPostcode = data[0].postcode;
+  var userRecordType = data[0].type;
+  var userRecordRooms = data[0].rooms;
+  var userRecordPrice = data[0].price;
+
+  console.log("userRecordPostcode" + userRecordPostcode)
   console.log("userRecorddata"+ userRecorddata)
 
-  if(userRecorddata.length === 0) {
-      console.log("userRecorddata is null" )
+    if(userRecorddata.length === 0) {
+      console.log("userRecorddata is null")
 
-    createJexiaUserRecord(senderID);
     //sendGreetingMessage(senderID);
+    createJexiaUserRecord(senderID);
+
 
     
     }else{
       console.log("user record is not null" + userRecorddata)
+      //sendTextMessage(senderID, "Hi there, welcome back"  )
+
 
     }
 
@@ -185,9 +194,6 @@ function receivedMessage(messagingEvent) {
 
 
 
-
-
-
 function sendGenericMessage(recipientId, messageText){
   sendTextMessage(senderID, "This is a generic message")
   console.log("this is a generic message")
@@ -211,31 +217,35 @@ function sendTextMessage(recipientId, messageText){
 }
 
 
-
+//question 1
 function sendGreetingMessage(senderID){
       var senderID = senderID;
 
-      sendTextMessage(senderID, "Hi I am your Real Estate assistent, I am here to help you find a suitable property. ");
+      sendTextMessage(senderID, "Hi I am your Real Estate assistent, I am here to help you find a suitable property. Please give me the postcode of the city you want me to look ");
 
 }
-
+//question 2
 function sendLocationMessage(senderID){
+    var senderID = senderID;
 
-    sendTextMessage(senderID, "Please give me the postcode of the city you are looking")
+    sendTextMessage(senderID, "Please give me the postcode of the city you want me to look")
 
 }
-
+//question 3
 function sendPropertyTypeMessage(senderID){
+  var senderID = senderID;
 
    sendTextMessage(senderID, "Are you looking for an appartment, house or studio?")
 }
-
+//question 4
 function sendRoomNumberMessage(senderID){
+  var senderID = senderID;
 
   sendTextMessage(senderID, "How many rooms should your property have?")
 }
-
+//question 5
 function sendMaxPriceMessage(senderID){
+  var senderID = senderID;
 
   sendTextMessage(senderID, "What is your maximum price?")
 }
@@ -320,9 +330,9 @@ function getJexiaUserRecord(userid){
           resolve(body);
 
         }else{
-           var userRecordId = body[0].user_id
-           console.log("this is the body" + userRecordId)
-           resolve(userRecordId);
+           var userRecord = body
+           console.log("this is the body" + userRecord)
+           resolve(userRecord);
 
         }
    })
