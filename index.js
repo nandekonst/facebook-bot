@@ -103,37 +103,62 @@ function receivedMessage(messagingEvent) {
   var recipientID = messagingEvent.recipient.id;
   var timeOfMessage = messagingEvent.timestamp;
   var message = messagingEvent.message;
+  var userRecorddata = null;
+  var userRecordPostcode = null;
+  var userRecordType = null;
+  var userRecordRooms = null;
+  var userRecordPrice = null;
+
+
 
   console.log('Received a message for user %d and page %d at %d with message:', senderID, recipientID, timeOfMessage);
   console.log(JSON.stringify(message));
 
   var userRecord = getJexiaUserRecord(senderID);
   
-  var userRec = userRecord.then(function(data){
-  var userRecorddata = data[0].user_id;
-  var userRecordPostcode = data[0].postcode;
-  var userRecordType = data[0].type;
-  var userRecordRooms = data[0].rooms;
-  var userRecordPrice = data[0].price;
+   var userRec = userRecord.then(function(data){
+   userRecorddata = data[0].user_id;
+   userRecordPostcode = data[0].postcode;
+   userRecordType = data[0].type;
+   userRecordRooms = data[0].rooms;
+   userRecordPrice = data[0].price;
 
   console.log("userRecordPostcode" + userRecordPostcode)
   console.log("userRecorddata"+ userRecorddata)
-
-    if(userRecorddata.length === 0) {
-      console.log("userRecorddata is null")
-
-    //sendGreetingMessage(senderID);
-    createJexiaUserRecord(senderID);
+  console.log("userRecordType" + userRecordType)
+  console.log("userRecordRooms" + userRecordRooms)
+  console.log("userRecordPrice" + userRecordPrice)
 
 
-    
+
+
+
+    if(userRecorddata == null) {
+      console.log("userRecorddata ID is an empty field")
+      //sendGreetingMessage(senderID);
+      createJexiaUserRecord(senderID);
+    }
+    if(userRecordPostcode == null){
+
+      console.log("Postcode is an empty field")
+    }
+    if(userRecordType == null){
+      console.log("Type is an empty field")
+    }
+    if(userRecordRooms == null){
+      console.log("Rooms is an empty field")
+
+    }
+    if(userRecordPrice == null){
+      console.log("Price is an empty field")
+
     }else{
-      console.log("user record is not null" + userRecorddata)
-      //sendTextMessage(senderID, "Hi there, welcome back"  )
-
+      console.log("no record is empty" + "userRecorddata:" + userRecorddata + "Postcode:" + userRecordPostcode + "type"+userRecordType )
 
     }
 
+    
+    
 
     
   })
@@ -141,7 +166,12 @@ function receivedMessage(messagingEvent) {
 
 
   
-  var messageText = message.text;
+
+
+
+
+
+  
  //var emptyField = getFirstEmptyField(userRecord);
   
 
@@ -191,6 +221,8 @@ function receivedMessage(messagingEvent) {
     
 
 }
+
+
 
 
 
@@ -369,7 +401,14 @@ function createJexiaUserRecord(userid){
 }
 
 
+//Store Postcode field
+function storePostcode(userid, postcode, messageText ){
+  var useridasstring = userid.toString()
+  var postcode = postcode
+  var messageText = message.text;
 
+  console.log("postcode" + postcode) 
+}
 
 
 
