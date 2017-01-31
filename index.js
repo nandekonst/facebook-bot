@@ -103,11 +103,8 @@ function receivedMessage(messagingEvent) {
   var recipientID = messagingEvent.recipient.id;
   var timeOfMessage = messagingEvent.timestamp;
   var message = messagingEvent.message;
-  var userRecorddata = null;
-  var userRecordPostcode = null;
-  var userRecordType = null;
-  var userRecordRooms = null;
-  var userRecordPrice = null;
+  var messageText = message.text;
+  
 
 
 
@@ -116,46 +113,56 @@ function receivedMessage(messagingEvent) {
 
   var userRecord = getJexiaUserRecord(senderID);
   
+
+
+  
    var userRec = userRecord.then(function(data){
-   userRecorddata = data[0].user_id;
-   userRecordPostcode = data[0].postcode;
-   userRecordType = data[0].type;
-   userRecordRooms = data[0].rooms;
-   userRecordPrice = data[0].price;
+      var userRecorddata = data[0].user_id;
+      var userRecordPostcode = data[0].postcode;
+      var userRecordType = data[0].type;
+      var userRecordRooms = data[0].rooms;
+      var userRecordPrice = data[0].price;
 
-  console.log("userRecordPostcode" + userRecordPostcode)
-  console.log("userRecorddata"+ userRecorddata)
-  console.log("userRecordType" + userRecordType)
-  console.log("userRecordRooms" + userRecordRooms)
-  console.log("userRecordPrice" + userRecordPrice)
+      console.log("userRecordPostcode" + userRecordPostcode)
+      console.log("userRecorddata"+ userRecorddata)
+      console.log("userRecordType" + userRecordType)
+      console.log("userRecordRooms" + userRecordRooms)
+      console.log("userRecordPrice" + userRecordPrice)
+
+  
+
+      if(userRecorddata == undefined) {
+        console.log("userRecorddata ID is an empty field")
+        sendGreetingMessage(senderID);
+        createJexiaUserRecord(senderID);
+      }else{
+        sendWelcomeBack(senderID);
+      }
 
 
 
 
-
-    if(userRecorddata == null) {
-      console.log("userRecorddata ID is an empty field")
-      //sendGreetingMessage(senderID);
-      createJexiaUserRecord(senderID);
-    }
-    if(userRecordPostcode == null){
+    /*
+    if(userRecordPostcode == undefined){
 
       console.log("Postcode is an empty field")
+      sendLocationMessage(senderID);
     }
-    if(userRecordType == null){
+    if(userRecordType == undefined){
       console.log("Type is an empty field")
+      sendPropertyTypeMessage(senderID);
     }
-    if(userRecordRooms == null){
+    if(userRecordRooms == undefined){
       console.log("Rooms is an empty field")
-
+      sendRoomNumberMessage(senderID);
     }
-    if(userRecordPrice == null){
+    if(userRecordPrice == undefined){
       console.log("Price is an empty field")
-
+      sendMaxPriceMessage(senderID);
     }else{
       console.log("no record is empty" + "userRecorddata:" + userRecorddata + "Postcode:" + userRecordPostcode + "type"+userRecordType )
 
-    }
+    }*/
 
     
     
@@ -254,6 +261,13 @@ function sendGreetingMessage(senderID){
       var senderID = senderID;
 
       sendTextMessage(senderID, "Hi I am your Real Estate assistent, I am here to help you find a suitable property. Please give me the postcode of the city you want me to look ");
+
+}
+
+function sendWelcomeBack(senderID){
+      var senderID = senderID
+
+      sendTextMessage(senderID, "Welcome back ")
 
 }
 //question 2
