@@ -111,64 +111,14 @@ function receivedMessage(messagingEvent) {
   console.log('Received a message for user %d and page %d at %d with message:', senderID, recipientID, timeOfMessage);
   console.log(JSON.stringify(message));
 
-  var userRecord = getJexiaUserRecord(senderID);
-  
+  fillFirstEmptyJexiaField(senderID, messageText);
+
+ 
 
 
-  
-   var userRec = userRecord.then(function(data){
-      var userRecorddata = data[0].user_id;
-      var userRecordPostcode = data[0].postcode;
-      var userRecordType = data[0].type;
-      var userRecordRooms = data[0].rooms;
-      var userRecordPrice = data[0].price;
-
-      console.log("userRecordPostcode" + userRecordPostcode)
-      console.log("userRecorddata"+ userRecorddata)
-      console.log("userRecordType" + userRecordType)
-      console.log("userRecordRooms" + userRecordRooms)
-      console.log("userRecordPrice" + userRecordPrice)
-
-  
-
-      if(userRecorddata == undefined) {
-        console.log("userRecorddata ID is an empty field")
-        sendGreetingMessage(senderID);
-        createJexiaUserRecord(senderID);
-      }else{
-        sendWelcomeBack(senderID);
-      }
-
-
-
-
-    /*
-    if(userRecordPostcode == undefined){
-
-      console.log("Postcode is an empty field")
-      sendLocationMessage(senderID);
-    }
-    if(userRecordType == undefined){
-      console.log("Type is an empty field")
-      sendPropertyTypeMessage(senderID);
-    }
-    if(userRecordRooms == undefined){
-      console.log("Rooms is an empty field")
-      sendRoomNumberMessage(senderID);
-    }
-    if(userRecordPrice == undefined){
-      console.log("Price is an empty field")
-      sendMaxPriceMessage(senderID);
-    }else{
-      console.log("no record is empty" + "userRecorddata:" + userRecorddata + "Postcode:" + userRecordPostcode + "type"+userRecordType )
-
-    }*/
 
     
-    
-
-    
-  })
+  }
 
 
 
@@ -227,7 +177,6 @@ function receivedMessage(messagingEvent) {
     }*/
     
 
-}
 
 
 
@@ -258,40 +207,40 @@ function sendTextMessage(recipientId, messageText){
 
 //question 1
 function sendGreetingMessage(senderID){
-      var senderID = senderID;
+      //var senderID = senderID;
 
       sendTextMessage(senderID, "Hi I am your Real Estate assistent, I am here to help you find a suitable property. Please give me the postcode of the city you want me to look ");
 
 }
 
 function sendWelcomeBack(senderID){
-      var senderID = senderID
+      //var senderID = senderID
 
       sendTextMessage(senderID, "Welcome back ")
 
 }
 //question 2
 function sendLocationMessage(senderID){
-    var senderID = senderID;
+    //var senderID = senderID;
 
     sendTextMessage(senderID, "Please give me the postcode of the city you want me to look")
 
 }
 //question 3
 function sendPropertyTypeMessage(senderID){
-  var senderID = senderID;
+  //var senderID = senderID;
 
    sendTextMessage(senderID, "Are you looking for an appartment, house or studio?")
 }
 //question 4
 function sendRoomNumberMessage(senderID){
-  var senderID = senderID;
+  //var senderID = senderID;
 
   sendTextMessage(senderID, "How many rooms should your property have?")
 }
 //question 5
 function sendMaxPriceMessage(senderID){
-  var senderID = senderID;
+  //var senderID = senderID;
 
   sendTextMessage(senderID, "What is your maximum price?")
 }
@@ -313,8 +262,8 @@ function callSendAPI(messageData) {
       var messageId = body.message_id;
       console.log("successfully sent message with id &s to recipient %s", messageId, recipientId);
     }else{
-      console.error("Unable to send message");
-      console.error(response);
+      //console.error("Unable to send message");
+      //console.error(response);
       console.error(error);
     }
   });
@@ -356,6 +305,65 @@ var options = {
 getAuth();
 
 
+function fillFirstEmptyJexiaField(userid, message) {
+
+ var userRecord = getJexiaUserRecord(userid);
+  
+   var userRec = userRecord.then(function(data){
+  
+      if(data[0] == undefined) {
+        console.log("userRecorddata ID is an empty field")
+        sendGreetingMessage(userid);
+        createJexiaUserRecord(userid);
+        return;
+      }else{
+      		sendLocationMessage(userid);
+
+      }
+
+      var userRecorddata = data[0].user_id;
+      var userRecordPostcode = data[0].postcode;
+      var userRecordType = data[0].type;
+      var userRecordRooms = data[0].rooms;
+      var userRecordPrice = data[0].price;
+      var jexiaRecordId = data[0].id;
+
+      console.log("userRecordPostcode" + userRecordPostcode)
+      console.log("userRecorddata"+ userRecorddata)
+      console.log("userRecordType" + userRecordType)
+      console.log("userRecordRooms" + userRecordRooms)
+      console.log("userRecordPrice" + userRecordPrice)
+      console.log("Jexia Record ID" + jexiaRecordId)
+
+  
+
+	  if(userRecordPostcode == undefined){
+	  	storePostcode(userid, message, jexiaRecordId);
+
+      }else if(userRecordType == undefined){
+        sendPropertyTypeMessage(userid);
+
+      	//storePropertyType(userid, message)
+
+      }else if(userRecordRooms == undefined){
+      	
+      	sendRoomNumberMessage(userid);
+
+      //storeRooms(userid, message)
+
+      }else if (userRecordPrice == undefined){
+      	sendMaxPriceMessage(userid);
+
+      	//storeMaxPrice(userid, message)
+
+      }
+         //sendSearchingMessage(userid)
+
+  })
+
+
+}
+
 
 function getJexiaUserRecord(userid){
 
@@ -372,7 +380,6 @@ function getJexiaUserRecord(userid){
 
           console.log(error)
         }if(body.length === 0){
-          console.log("the body is null")
           resolve(body);
 
         }else{
@@ -416,12 +423,27 @@ function createJexiaUserRecord(userid){
 
 
 //Store Postcode field
-function storePostcode(userid, postcode, messageText ){
-  var useridasstring = userid.toString()
-  var postcode = postcode
-  var messageText = message.text;
+function storePostcode(userid, messageText, jexia_id){
 
-  console.log("postcode" + postcode) 
+	var data = {'postcode':messageText}
+	var headers = {
+    	'Authorization': 'Bearer ' + token
+    }
+    var options = {
+    	'url':'https://afe21f70-58ac-11e6-9400-bf08cc0779e0.app.jexia.com/User/' + jexia_id,
+    	'headers': headers,
+    	'form': data
+    };
+
+    request.put(options, function(err, response, body){
+    	console.log("BODY" + body)
+    })
+
+
+ 
+  console.log("postcode" + messageText)
+
+
 }
 
 
