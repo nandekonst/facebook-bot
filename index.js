@@ -209,7 +209,7 @@ function sendTextMessage(recipientId, messageText){
 function sendGreetingMessage(senderID){
       //var senderID = senderID;
 
-      sendTextMessage(senderID, "Hi I am your Real Estate assistent, I am here to help you find a suitable property. Please give me the postcode of the city you want me to look ");
+      sendTextMessage(senderID, "Hi I am your Real Estate assistent, I am here to help you find a suitable property. Please give me the postcode of the city you want me to look");
 
 }
 
@@ -316,9 +316,6 @@ function fillFirstEmptyJexiaField(userid, message) {
         sendGreetingMessage(userid);
         createJexiaUserRecord(userid);
         return;
-      }else{
-      		sendLocationMessage(userid);
-
       }
 
       var userRecorddata = data[0].user_id;
@@ -339,9 +336,10 @@ function fillFirstEmptyJexiaField(userid, message) {
 
 	  if(userRecordPostcode == undefined){
 	  	storePostcode(userid, message, jexiaRecordId);
+	  	sendPropertyTypeMessage(userid);
+
 
       }else if(userRecordType == undefined){
-        sendPropertyTypeMessage(userid);
 
       	//storePropertyType(userid, message)
 
