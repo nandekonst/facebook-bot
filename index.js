@@ -341,7 +341,7 @@ function fillFirstEmptyJexiaField(userid, message) {
 
       }else if(userRecordType == undefined){
 
-      	//storePropertyType(userid, message)
+      	storePropertyType(userid, message, jexiaRecordId)
 
       }else if(userRecordRooms == undefined){
       	
@@ -434,12 +434,12 @@ function storePostcode(userid, messageText, jexia_id){
     };
 
     request.put(options, function(err, response, body){
-    	console.log("BODY" + body)
+
+    	console.log(body)
     })
 
 
  
-  console.log("postcode" + messageText)
 
 
 }
