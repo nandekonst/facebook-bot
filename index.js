@@ -228,21 +228,23 @@ function sendLocationMessage(senderID){
 }
 //question 3
 function sendPropertyTypeMessage(senderID){
-  //var senderID = senderID;
 
    sendTextMessage(senderID, "Are you looking for an appartment, house or studio?")
 }
 //question 4
 function sendRoomNumberMessage(senderID){
-  //var senderID = senderID;
 
   sendTextMessage(senderID, "How many rooms should your property have?")
 }
 //question 5
 function sendMaxPriceMessage(senderID){
-  //var senderID = senderID;
 
   sendTextMessage(senderID, "What is your maximum price?")
+}
+//search
+function sendSearchMessage(senderID){
+
+  sendTextMessage(senderID, "I have all your data, I will start searching now and give you the results soon")
 }
 
 
@@ -336,26 +338,28 @@ function fillFirstEmptyJexiaField(userid, message) {
 
 	  if(userRecordPostcode == undefined){
 	  	storePostcode(userid, message, jexiaRecordId);
-	  	sendPropertyTypeMessage(userid);
+      sendPropertyTypeMessage(userid);
 
 
       }else if(userRecordType == undefined){
 
       	storePropertyType(userid, message, jexiaRecordId)
+        sendRoomNumberMessage(userid)
 
       }else if(userRecordRooms == undefined){
-      	
-      	sendRoomNumberMessage(userid);
+      	storeRoomNumber(userid, message, jexiaRecordId)
+        sendMaxPriceMessage(userid);
 
-      //storeRooms(userid, message)
 
       }else if (userRecordPrice == undefined){
-      	sendMaxPriceMessage(userid);
+        storeMaxPrice(userid, message, jexiaRecordId)
+        sendSearchMessage(userid)
 
-      	//storeMaxPrice(userid, message)
 
+      }else{
+        sendSearchMessage(userid)
+        startSearch(userid, userRecordPostcode, userRecordType, userRecordRooms, userRecordPrice)
       }
-         //sendSearchingMessage(userid)
 
   })
 
@@ -439,14 +443,69 @@ function storePostcode(userid, messageText, jexia_id){
     })
 
 
- 
+}
+
+function storePropertyType(userid, messageText, jexia_id){
+
+  var data = {'type': messageText}
+  var headers = {
+      'Authorization': 'Bearer ' + token
+    }
+    var options = {
+      'url':'https://afe21f70-58ac-11e6-9400-bf08cc0779e0.app.jexia.com/User/' + jexia_id,
+      'headers': headers,
+      'form': data
+    };
+
+    request.put(options, function(err, response, body){
+
+      console.log(body)
+
+    })
+
+  }
+
+function storeRoomNumber(userid, messageText, jexia_id){
+
+  var data = {'rooms': messageText}
+  var headers = {
+      'Authorization': 'Bearer ' + token
+  }
+  var options = {
+    'url':'https://afe21f70-58ac-11e6-9400-bf08cc0779e0.app.jexia.com/User/' + jexia_id,
+    'headers': headers,
+    'form': data
+  };
+
+  request.put(options, function(err, response, body){
+
+      console.log(body)
+  })
 
 
 }
 
+function storeMaxPrice(userid, messageText, jexia_id){
+  var data = {'price': messageText}
+  var headers = {
+      'Authorization': 'Bearer ' + token
+  }
+  var options = {
+     'url': 'https://afe21f70-58ac-11e6-9400-bf08cc0779e0.app.jexia.com/User/' + jexia_id,
+     'headers': headers,
+     'form': data
+
+  };
+
+  request.put(options, function(err, response, body){
+      console.log(body)
+  })
+
+}
 
 
+function startSearch(userid, postcode, type, rooms, price){
+  console.log("POstcode is" + postcode)
 
-
-
+}
 
