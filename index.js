@@ -3,24 +3,15 @@ const http = require('http');
 const request = require('request');
 const express = require('express');
 const rp = require('request-promise');
-var Promise = require('promise'); 
 const bodyParser = require('body-parser');
 const app = express();
+const querystring = require('query-string');
 const PAGE_ACCESS_TOKEN = 'EAATSm02f8EIBAE9FEhKFLjf7t8GTUxv3F2sch4kdiyt7fBiH5xV63TvlXsVfPumlKwbO8pQNlO7pVm25bVVOPn8ZAg4wp92YdMJZAO2i1C3e9S98rFC3OnMSChixmQzZAQ1xX2OKwmoYJN7RyrbLn39LtwAZAZAMmsaFP9DM7xgZDZD';
 const HELP_BUTTON = "DEVELOPER_DEFINED_PAYLOAD_FOR_HELP";
 const FAQ_BUTTON = "DEVELOPER_DEFINED_PAYLOAD_FOR_FAQ";
 const DATA_BUTTON = "DEVELOPER_DEFINED_PAYLOAD_FOR_DATA";
 var token;
 
-var EmptyFieldEnum = {
-
-  noEmptyField : 0,
-  locationField : 1, 
-  propertyTypeField : 2,
-  roomNumberField : 3,
-  maxPriceField : 4,
-
-}
 
 
 app.set('port', (process.env.PORT || 8080))
@@ -122,63 +113,6 @@ function receivedMessage(messagingEvent) {
 
 
 
-  
-
-
-
-
-
-  
- //var emptyField = getFirstEmptyField(userRecord);
-  
-
-
-  /*switch (emptyField){
-    case locationField:
-      if(!checkLocationValue(messageText))
-        sendLocationMessage(senderID);
-      else {
-        storeLocation(messageText);
-        sendPropertyTypeMessage(senderID);
-      }
-    break;
-    case propertyTypeField:
-      sendPropertyTypeMessage(senderID);
-    break;
-    case roomNumberField:
-      sendRoomNumberMessage(senderID);
-    break;
-    case maxPriceField:
-      sendMaxPriceMessage(senderID);
-    break;
-    case noEmptyField:
-    break;
-  }*/
-
-  //var messageId = message.mid;
-  //var messageAttachments = message.attachments;
-
-
-    
-
-    /*if(messageText){
-      //if we receive a text message, check to see if it matches a keyword and send back the example,
-      //otherwise just echt the text we received.
-      switch (messageText){
-        case 'generic':
-          sendGenericMessage(senderID);
-          break;
-        default:
-          sendTextMessage(senderID, messageText);
-      }
-
-    } else if (messageAttachments){
-          sendTextMessage(senderID, "Message with attachment received");
-    }*/
-    
-
-
-
 
 
 
@@ -246,6 +180,9 @@ function sendSearchMessage(senderID){
 
   sendTextMessage(senderID, "I have all your data, I will start searching now and give you the results soon")
 }
+function sendResultMessage(senderID, result){
+  sendTextMessage(senderID, "I found this result for you" + result)
+}
 
 
 //callsendAPI calls the Send API
@@ -306,7 +243,7 @@ var options = {
 
 getAuth();
 
-
+//Check first empty field
 function fillFirstEmptyJexiaField(userid, message) {
 
  var userRecord = getJexiaUserRecord(userid);
@@ -314,7 +251,6 @@ function fillFirstEmptyJexiaField(userid, message) {
    var userRec = userRecord.then(function(data){
   
       if(data[0] == undefined) {
-        console.log("userRecorddata ID is an empty field")
         sendGreetingMessage(userid);
         createJexiaUserRecord(userid);
         return;
@@ -358,7 +294,17 @@ function fillFirstEmptyJexiaField(userid, message) {
 
       }else{
         sendSearchMessage(userid)
-        startSearch(userid, userRecordPostcode, userRecordType, userRecordRooms, userRecordPrice)
+        var result = startSearch(userid, userRecordPostcode, userRecordType, userRecordRooms, userRecordPrice)
+        var endresult = result.then(function(data){
+        var resultrecord = data[0].link;
+        sendResultMessage(userid, resultrecord)
+
+        console.log("resultrecord" + resultrecord)    
+
+
+
+            console.log("I found this" + JSON.stringify(data))
+        })
       }
 
   })
@@ -366,7 +312,7 @@ function fillFirstEmptyJexiaField(userid, message) {
 
 }
 
-
+//Get the Jexia record for the user
 function getJexiaUserRecord(userid){
 
   return new Promise(function (resolve, reject){
@@ -444,7 +390,7 @@ function storePostcode(userid, messageText, jexia_id){
 
 
 }
-
+//Store the property type
 function storePropertyType(userid, messageText, jexia_id){
 
   var data = {'type': messageText}
@@ -465,6 +411,7 @@ function storePropertyType(userid, messageText, jexia_id){
 
   }
 
+//Store Room Number 
 function storeRoomNumber(userid, messageText, jexia_id){
 
   var data = {'rooms': messageText}
@@ -485,6 +432,7 @@ function storeRoomNumber(userid, messageText, jexia_id){
 
 }
 
+//Store Max Price
 function storeMaxPrice(userid, messageText, jexia_id){
   var data = {'price': messageText}
   var headers = {
@@ -503,9 +451,53 @@ function storeMaxPrice(userid, messageText, jexia_id){
 
 }
 
-
+//Start searching for houses.
 function startSearch(userid, postcode, type, rooms, price){
-  console.log("POstcode is" + postcode)
+
+  var url = 'https://afe21f70-58ac-11e6-9400-bf08cc0779e0.app.jexia.com/Property?'
+  var query = querystring.stringify({postcode:[postcode], type:[type], rooms:[rooms], price:[price]})
+
+
+
+return new Promise(function (resolve, reject){
+
+    request({
+      url:url+query,
+      method:'GET',
+      json:true,
+      headers: {'Authorization': 'Bearer ' + token}
+
+    }, function(error, response, body){
+        if(error){
+
+          console.log(error)
+        }if(body.length === 0){
+          resolve(body);
+
+        }else{
+           var propertyRecord = body
+           console.log("this is the body of startSearch" + propertyRecord)
+           resolve(propertyRecord);
+
+        }
+   })
+  })
+
+
+
+
+
+
+
+
+
 
 }
+
+
+
+
+
+
+
 
