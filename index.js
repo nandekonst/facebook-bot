@@ -176,10 +176,6 @@ function sendMaxPriceMessage(senderID){
   sendTextMessage(senderID, "What is your maximum price?")
 }
 //search
-function sendSearchMessage(senderID){
-
-  sendTextMessage(senderID, "I have all your data, I will start searching now and give you the results soon")
-}
 function sendResultMessage(senderID, result){
   sendTextMessage(senderID, "I found this result for you" + result)
 }
@@ -289,22 +285,18 @@ function fillFirstEmptyJexiaField(userid, message) {
 
       }else if (userRecordPrice == undefined){
         storeMaxPrice(userid, message, jexiaRecordId)
-        sendSearchMessage(userid)
-
-
-      }else{
-        sendSearchMessage(userid)
         var result = startSearch(userid, userRecordPostcode, userRecordType, userRecordRooms, userRecordPrice)
         var endresult = result.then(function(data){
         var resultrecord = data[0].link;
         sendResultMessage(userid, resultrecord)
 
-        console.log("resultrecord" + resultrecord)    
-
+          
 
 
             console.log("I found this" + JSON.stringify(data))
         })
+
+
       }
 
   })
@@ -454,15 +446,15 @@ function storeMaxPrice(userid, messageText, jexia_id){
 //Start searching for houses.
 function startSearch(userid, postcode, type, rooms, price){
 
-  var url = 'https://afe21f70-58ac-11e6-9400-bf08cc0779e0.app.jexia.com/Property?'
+  var url = 'https://afe21f70-58ac-11e6-9400-bf08cc0779e0.app.jexia.com/Property?where={"postcode":{"startsWith" :"'+ postcode + '" }}&type=' + type 
   var query = querystring.stringify({postcode:[postcode], type:[type], rooms:[rooms], price:[price]})
-
+  console.log("This is the query" + url)
 
 
 return new Promise(function (resolve, reject){
 
     request({
-      url:url+query,
+      url:url,
       method:'GET',
       json:true,
       headers: {'Authorization': 'Bearer ' + token}
