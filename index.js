@@ -112,14 +112,45 @@ function receivedMessage(messagingEvent) {
   }
 
 
+function sendGenericMessage(recipientId, result, image, title) {
+  var messageData = {
+    recipient: {
+      id: recipientId
+    },
+    message: {
+      attachment: {
+        type: "template",
+        payload: {
+          template_type: "generic",
+          elements: [{
+            title: title,
+            image_url: image,
+            buttons: [{
+              type: "web_url",
+              url: result,
+              title: "Open Web URL"
+            }],
+          }, {
+            title: "touch",
+            subtitle: "Your Hands, Now in VR",
+            item_url: "https://www.oculus.com/en-us/touch/",               
+            image_url: "http://messengerdemo.parseapp.com/img/touch.png",
+            buttons: [{
+              type: "web_url",
+              url: "https://www.oculus.com/en-us/touch/",
+              title: "Open Web URL"
+            }]
+          }]
+        }
+      }
+    }
+  };  
 
-
-
-
-function sendGenericMessage(recipientId, messageText){
-  sendTextMessage(senderID, "This is a generic message")
-  console.log("this is a generic message")
+  callSendAPI(messageData);
 }
+
+
+
 
 function sendTextMessage(recipientId, messageText){
 
@@ -176,12 +207,13 @@ function sendMaxPriceMessage(senderID){
   sendTextMessage(senderID, "What is your maximum price?")
 }
 //search
-function sendSearchMessage(senderID){
-
-  sendTextMessage(senderID, "I have all your data, I will start searching now and give you the results soon")
+function sendResultMessage(senderID){
+  sendTextMessage(senderID, "I found this result for you")
 }
-function sendResultMessage(senderID, result){
-  sendTextMessage(senderID, "I found this result for you" + result)
+
+//Can't find a record
+function sendNoRecord(senderID){
+  sendTextMessage(senderID, "Sorry I couldn't find any result")
 }
 
 
@@ -272,39 +304,43 @@ function fillFirstEmptyJexiaField(userid, message) {
 
   
 
-	  if(userRecordPostcode == undefined){
-	  	storePostcode(userid, message, jexiaRecordId);
+    if(userRecordPostcode == undefined){
+      storePostcode(userid, message, jexiaRecordId);
       sendPropertyTypeMessage(userid);
 
 
       }else if(userRecordType == undefined){
 
-      	storePropertyType(userid, message, jexiaRecordId)
+        storePropertyType(userid, message, jexiaRecordId)
         sendRoomNumberMessage(userid)
 
       }else if(userRecordRooms == undefined){
-      	storeRoomNumber(userid, message, jexiaRecordId)
+        storeRoomNumber(userid, message, jexiaRecordId)
         sendMaxPriceMessage(userid);
 
 
       }else if (userRecordPrice == undefined){
         storeMaxPrice(userid, message, jexiaRecordId)
-        sendSearchMessage(userid)
-
-
-      }else{
-        sendSearchMessage(userid)
         var result = startSearch(userid, userRecordPostcode, userRecordType, userRecordRooms, userRecordPrice)
         var endresult = result.then(function(data){
         var resultrecord = data[0].link;
+        var resultimg = data[0].image_url;
+        var result_title = data[0].title;
         sendResultMessage(userid, resultrecord)
-
-        console.log("resultrecord" + resultrecord)    
-
+        sendGenericMessage(userid, resultrecord, resultimg, result_title)
+       
+          console.log("resultrecord" + resultrecord)
+          
 
 
             console.log("I found this" + JSON.stringify(data))
+        }).catch(function(e){
+            sendNoRecord(userid, message)
+
         })
+
+
+
       }
 
   })
@@ -373,19 +409,19 @@ function createJexiaUserRecord(userid){
 //Store Postcode field
 function storePostcode(userid, messageText, jexia_id){
 
-	var data = {'postcode':messageText}
-	var headers = {
-    	'Authorization': 'Bearer ' + token
+  var data = {'postcode':messageText}
+  var headers = {
+      'Authorization': 'Bearer ' + token
     }
     var options = {
-    	'url':'https://afe21f70-58ac-11e6-9400-bf08cc0779e0.app.jexia.com/User/' + jexia_id,
-    	'headers': headers,
-    	'form': data
+      'url':'https://afe21f70-58ac-11e6-9400-bf08cc0779e0.app.jexia.com/User/' + jexia_id,
+      'headers': headers,
+      'form': data
     };
 
     request.put(options, function(err, response, body){
 
-    	console.log(body)
+      console.log(body)
     })
 
 
@@ -456,7 +492,7 @@ function startSearch(userid, postcode, type, rooms, price){
 
   var url = 'https://afe21f70-58ac-11e6-9400-bf08cc0779e0.app.jexia.com/Property?'
   var query = querystring.stringify({postcode:[postcode], type:[type], rooms:[rooms], price:[price]})
-
+  console.log("This is the query" + url)
 
 
 return new Promise(function (resolve, reject){
@@ -471,8 +507,10 @@ return new Promise(function (resolve, reject){
         if(error){
 
           console.log(error)
+
         }if(body.length === 0){
           resolve(body);
+
 
         }else{
            var propertyRecord = body
@@ -493,11 +531,4 @@ return new Promise(function (resolve, reject){
 
 
 }
-
-
-
-
-
-
-
 
