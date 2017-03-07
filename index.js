@@ -12,8 +12,6 @@ const FAQ_BUTTON = "DEVELOPER_DEFINED_PAYLOAD_FOR_FAQ";
 const DATA_BUTTON = "DEVELOPER_DEFINED_PAYLOAD_FOR_DATA";
 var token;
 
-
-
 app.set('port', (process.env.PORT || 8080))
 app.use(bodyParser.urlencoded({extended: false}))
 app.use (bodyParser.json())
@@ -31,8 +29,6 @@ app.listen(app.get('port'), function(){
 
   console.log('running on port', app.get('port'))
 })
-
-
 
 
 //Make data exchange between App and Facebook over the webhook possible
@@ -75,7 +71,6 @@ app.post('/webhook', function (req, res) {
 });
 
 
-
 //Message was delivered to the user
 function receivedDeliveryConfirmation(messagingEvent) {
    var senderID = messagingEvent.sender.id;
@@ -103,9 +98,6 @@ function receivedMessage(messagingEvent) {
   console.log(JSON.stringify(message));
 
   fillFirstEmptyJexiaField(senderID, messageText);
-
- 
-
 
 
     
@@ -206,6 +198,11 @@ function sendMaxPriceMessage(senderID){
 
   sendTextMessage(senderID, "What is your maximum price?")
 }
+
+//say start
+function sendStartMessage(senderID){
+  sendTextMessage(senderID, "Type start to make me start searching")
+}
 //search
 function sendResultMessage(senderID){
   sendTextMessage(senderID, "I found this result for you")
@@ -293,16 +290,14 @@ function fillFirstEmptyJexiaField(userid, message) {
       var userRecordType = data[0].type;
       var userRecordRooms = data[0].rooms;
       var userRecordPrice = data[0].price;
+      var userRecordPrice2 = data[0].price2;
       var jexiaRecordId = data[0].id;
-
       console.log("userRecordPostcode" + userRecordPostcode)
-      console.log("userRecorddata"+ userRecorddata)
       console.log("userRecordType" + userRecordType)
       console.log("userRecordRooms" + userRecordRooms)
       console.log("userRecordPrice" + userRecordPrice)
-      console.log("Jexia Record ID" + jexiaRecordId)
+      console.log("userRecordPrice2" + userRecordPrice2)
 
-  
 
     if(userRecordPostcode == undefined){
       storePostcode(userid, message, jexiaRecordId);
@@ -321,24 +316,27 @@ function fillFirstEmptyJexiaField(userid, message) {
 
       }else if (userRecordPrice == undefined){
         storeMaxPrice(userid, message, jexiaRecordId)
+        sendStartMessage(userid);
+
+      }else {
+
+
         var result = startSearch(userid, userRecordPostcode, userRecordType, userRecordRooms, userRecordPrice)
         var endresult = result.then(function(data){
         var resultrecord = data[0].link;
         var resultimg = data[0].image_url;
         var result_title = data[0].title;
         sendResultMessage(userid, resultrecord)
-        sendGenericMessage(userid, resultrecord, resultimg, result_title)
-       
-          console.log("resultrecord" + resultrecord)
-          
-
-
-            console.log("I found this" + JSON.stringify(data))
+        
+          sendGenericMessage(userid, resultrecord, resultimg, result_title)          
+        
+          console.log("I found this" + JSON.stringify(data))
+ 
+        
         }).catch(function(e){
             sendNoRecord(userid, message)
 
         })
-
 
 
       }
@@ -482,6 +480,7 @@ function storeMaxPrice(userid, messageText, jexia_id){
   };
 
   request.put(options, function(err, response, body){
+      
       console.log(body)
   })
 
@@ -490,15 +489,15 @@ function storeMaxPrice(userid, messageText, jexia_id){
 //Start searching for houses.
 function startSearch(userid, postcode, type, rooms, price){
 
-  var url = 'https://afe21f70-58ac-11e6-9400-bf08cc0779e0.app.jexia.com/Property?'
-  var query = querystring.stringify({postcode:[postcode], type:[type], rooms:[rooms], price:[price]})
+  var searchresult = [];
+  var url = 'https://afe21f70-58ac-11e6-9400-bf08cc0779e0.app.jexia.com/Property?where={"price" : {"<=":"'+ price +'"}, "type":"'+ type +'", "postcode":"' + postcode +'"}'
+  //var query = querystring.stringify({postcode:[postcode], type:[type], rooms:[rooms], price:[price]})
   console.log("This is the query" + url)
-
 
 return new Promise(function (resolve, reject){
 
     request({
-      url:url+query,
+      url:url, 
       method:'GET',
       json:true,
       headers: {'Authorization': 'Bearer ' + token}
@@ -514,20 +513,17 @@ return new Promise(function (resolve, reject){
 
         }else{
            var propertyRecord = body
-           console.log("this is the body of startSearch" + propertyRecord)
-           resolve(propertyRecord);
 
-        }
+                console.log("this is the body of startSearch" + propertyRecord)
+
+                resolve(propertyRecord);
+
+            }
+            
+           
+        
    })
   })
-
-
-
-
-
-
-
-
 
 
 }
