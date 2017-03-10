@@ -5,7 +5,6 @@ const express = require('express');
 const rp = require('request-promise');
 const bodyParser = require('body-parser');
 const app = express();
-const querystring = require('query-string');
 const PAGE_ACCESS_TOKEN = 'EAATSm02f8EIBAE9FEhKFLjf7t8GTUxv3F2sch4kdiyt7fBiH5xV63TvlXsVfPumlKwbO8pQNlO7pVm25bVVOPn8ZAg4wp92YdMJZAO2i1C3e9S98rFC3OnMSChixmQzZAQ1xX2OKwmoYJN7RyrbLn39LtwAZAZAMmsaFP9DM7xgZDZD';
 const HELP_BUTTON = "DEVELOPER_DEFINED_PAYLOAD_FOR_HELP";
 const FAQ_BUTTON = "DEVELOPER_DEFINED_PAYLOAD_FOR_FAQ";
@@ -104,50 +103,59 @@ function receivedMessage(messagingEvent) {
   }
 
 
-function sendGenericMessage(recipientId, result, image, title) {
+function sendGenericMessage(recipientId, message) {
+  
+
   var messageData = {
     recipient: {
       id: recipientId
     },
-    message: {
-      attachment: {
-        type: "template",
-        payload: {
-          template_type: "generic",
-          elements: [{
-            title: title,
-            image_url: image,
-            buttons: [{
-              type: "web_url",
-              url: result,
-              title: "Open Web URL"
-            }],
-          }, {
-            title: "touch",
-            subtitle: "Your Hands, Now in VR",
-            item_url: "https://www.oculus.com/en-us/touch/",               
-            image_url: "http://messengerdemo.parseapp.com/img/touch.png",
-            buttons: [{
-              type: "web_url",
-              url: "https://www.oculus.com/en-us/touch/",
-              title: "Open Web URL"
-            }]
-          }]
-        }
-      }
-    }
-  };  
+    message
+  };
+
+  console.log("MESSAGE " + JSON.stringify(messageData));
+  
 
   callSendAPI(messageData);
 }
 
+function createSearchResultMessage(data) {
+  var length = data.length;
+  var elements = [];
+  for (var i = 0; i < length; i++) {
+        var link = data[i].link;
+        var image = data[i].image_url;
+        var title = data[i].title;
 
+        elements.push({
+            title: title,
+            image_url: image,
+            buttons: [{
+              type: "web_url",
+              url: link,
+              title: "Open Web URL"
+            }]
+          });
+  }
+
+  var message = {
+    attachment: {
+      type: "template",
+      payload: {
+        template_type: "generic",
+        elements: elements
+      }
+    }
+  }
+
+  return message;
+}
 
 
 function sendTextMessage(recipientId, messageText){
 
   var messageData = {
-
+git re
     'recipient': {
       'id':recipientId
 
@@ -272,13 +280,13 @@ var options = {
 
 getAuth();
 
-//Cfheck first empty field
+//Check first empty field
 function fillFirstEmptyJexiaField(userid, message) {
 
  var userRecord = getJexiaUserRecord(userid);
   
    var userRec = userRecord.then(function(data){
-  
+    
       if(data[0] == undefined) {
         sendGreetingMessage(userid);
         createJexiaUserRecord(userid);
@@ -295,6 +303,7 @@ function fillFirstEmptyJexiaField(userid, message) {
       console.log("userRecordType" + userRecordType)
       console.log("userRecordRooms" + userRecordRooms)
       console.log("userRecordPrice" + userRecordPrice)
+      console.log("userRecordPrice2" + userRecordPrice2)
 
 
     if(userRecordPostcode == undefined){
@@ -318,22 +327,24 @@ function fillFirstEmptyJexiaField(userid, message) {
 
       }else {
 
-
         var result = startSearch(userid, userRecordPostcode, userRecordType, userRecordRooms, userRecordPrice)
         var endresult = result.then(function(data){
-        var resultrecord = data[0].link;
-        var resultimg = data[0].image_url;
-        var result_title = data[0].title;
-        sendResultMessage(userid, resultrecord)
-        
-          sendGenericMessage(userid, resultrecord, resultimg, result_title)          
-        
+
+          if((data == undefined) || (data == null)){
+            sendNoRecord(userid, message);
+          }
+
           console.log("I found this" + JSON.stringify(data))
+
+          sendResultMessage(userid)
+          
+          var message = createSearchResultMessage(data)
  
+          sendGenericMessage(userid, message)       
         
         }).catch(function(e){
-            sendNoRecord(userid, message)
-
+            console.log("Something went wrong: " + e)
+            sendGenericMessage(userid, "I've made a mistake. I'm sorry.")
         })
 
 
@@ -525,4 +536,3 @@ return new Promise(function (resolve, reject){
 
 
 }
-
