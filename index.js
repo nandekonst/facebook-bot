@@ -301,7 +301,6 @@ function fillFirstEmptyJexiaField(userid, message) {
       console.log("userRecordType" + userRecordType)
       console.log("userRecordRooms" + userRecordRooms)
       console.log("userRecordPrice" + userRecordPrice)
-      console.log("userRecordPrice2" + userRecordPrice2)
 
 
     if(userRecordPostcode == undefined){
