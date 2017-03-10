@@ -272,7 +272,7 @@ var options = {
 
 getAuth();
 
-//Check first empty field
+//Cfheck first empty field
 function fillFirstEmptyJexiaField(userid, message) {
 
  var userRecord = getJexiaUserRecord(userid);
@@ -290,13 +290,11 @@ function fillFirstEmptyJexiaField(userid, message) {
       var userRecordType = data[0].type;
       var userRecordRooms = data[0].rooms;
       var userRecordPrice = data[0].price;
-      var userRecordPrice2 = data[0].price2;
       var jexiaRecordId = data[0].id;
       console.log("userRecordPostcode" + userRecordPostcode)
       console.log("userRecordType" + userRecordType)
       console.log("userRecordRooms" + userRecordRooms)
       console.log("userRecordPrice" + userRecordPrice)
-      console.log("userRecordPrice2" + userRecordPrice2)
 
 
     if(userRecordPostcode == undefined){
