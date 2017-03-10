@@ -2,24 +2,12 @@
   "name": "github-facebook-bot",
   "version": "1.0.0",
   "description": "Facebook Messenger Bot",
-  "main": "y",
-  "scripts": {
-    "test": "n"
-  },
-  "repository": {
-    "type": "git",
-    "url": "y"
-  },
-  "keywords": [
-    "facebook",
-    "messenger",
-    "bot"
-  ],
-  "author": "Nande Konst",
-  
-  "license": "UNLICENSED",
-  
+  "licence":"MIT",
   "dependencies": {
-   "express": "4.14.0"
+   "express": "4.15.2",
+   "body-parser":"1.17.1",
+   "request":"2.81.0",
+   "request-promise":"4.1.1",
+   
   }
 }
