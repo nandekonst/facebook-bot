@@ -93,14 +93,14 @@ function receivedMessage(messagingEvent) {
 
 
 
-  console.log('Received a message for user %d and page %d at %d with message:', senderID, recipientID, timeOfMessage);
-  console.log(JSON.stringify(message));
+    console.log('Received a message for user %d and page %d at %d with message:', senderID, recipientID, timeOfMessage);
+    console.log(JSON.stringify(message));
 
-  fillFirstEmptyJexiaField(senderID, messageText);
+    fillFirstEmptyJexiaField(senderID, messageText);
 
 
     
-  }
+}
 
 
 function sendGenericMessage(recipientId, message) {
