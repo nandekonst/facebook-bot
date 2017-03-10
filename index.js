@@ -91,8 +91,6 @@ function receivedMessage(messagingEvent) {
   var messageText = message.text;
   
 
-
-
     console.log('Received a message for user %d and page %d at %d with message:', senderID, recipientID, timeOfMessage);
     console.log(JSON.stringify(message));
 
@@ -155,7 +153,7 @@ function createSearchResultMessage(data) {
 function sendTextMessage(recipientId, messageText){
 
   var messageData = {
-git re
+
     'recipient': {
       'id':recipientId
 
