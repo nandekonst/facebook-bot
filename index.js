@@ -4,19 +4,18 @@ const request = require('request');
 const express = require('express');
 const rp = require('request-promise');
 const bodyParser = require('body-parser');
-const app = express();
+var JexiaClient = require ('jexia-sdk-js').JexiaClient;
+const expr = express();
 const PAGE_ACCESS_TOKEN = 'EAATSm02f8EIBAE9FEhKFLjf7t8GTUxv3F2sch4kdiyt7fBiH5xV63TvlXsVfPumlKwbO8pQNlO7pVm25bVVOPn8ZAg4wp92YdMJZAO2i1C3e9S98rFC3OnMSChixmQzZAQ1xX2OKwmoYJN7RyrbLn39LtwAZAZAMmsaFP9DM7xgZDZD';
 const HELP_BUTTON = "DEVELOPER_DEFINED_PAYLOAD_FOR_HELP";
 const FAQ_BUTTON = "DEVELOPER_DEFINED_PAYLOAD_FOR_FAQ";
 const DATA_BUTTON = "DEVELOPER_DEFINED_PAYLOAD_FOR_DATA";
 var token;
 
-app.set('port', (process.env.PORT || 8080))
-app.use(bodyParser.urlencoded({extended: false}))
-app.use (bodyParser.json())
-
-
-app.get('/webhook', function(req, res){
+expr.set('port', (process.env.PORT || 8080))
+expr.use(bodyParser.urlencoded({extended: false}))
+expr.use (bodyParser.json())
+expr.get('/webhook', function(req, res){
 
   if(req.query['hub.verify_token'] === 'nande'){
     res.send(req.query['hub.challenge'])
@@ -24,14 +23,14 @@ app.get('/webhook', function(req, res){
   }
   res.send('Error, wrong token')
 })
-app.listen(app.get('port'), function(){
+expr.listen(expr.get('port'), function(){
 
-  console.log('running on port', app.get('port'))
+  console.log('running on port', expr.get('port'))
 })
 
 
 //Make data exchange between App and Facebook over the webhook possible
-app.post('/webhook', function (req, res) {
+expr.post('/webhook', function (req, res) {
   var data = req.body;
 
 
@@ -69,11 +68,55 @@ app.post('/webhook', function (req, res) {
   }
 });
 
+//Authentication Jexia
+function getAuth(callback){
+
+var headers = {
+  'key':'79514f8aa35fb6d41723f08ef044d699', 
+  'secret':'308d06f94e966e5dadee5afdcfe94b7c1e2bfbe260d193a7'
+
+}
+
+var options = {
+'url':' https://afe21f70-58ac-11e6-9400-bf08cc0779e0.app.jexia.com ',
+'method': 'POST',
+'form': headers 
+}
+
+
+  function callBack(error, response, body){
+
+     
+   var body = JSON.parse(body);
+
+   token = body.token;
+   var refreshtoken = body.refresh_token
+   console.log("token" + token);
+   console.log("refreshtoken" + refreshtoken)
+  
+  
+    }
+    request(options, callBack)
+
+}
+
+getAuth();
 
 //Message was delivered to the user
 function receivedDeliveryConfirmation(messagingEvent) {
    var senderID = messagingEvent.sender.id;
    console.log('Received delivery confirmation from id: ', senderID)
+}
+
+//Received a payload
+function receivedPostbackMenu(messagingEvent){
+  var senderID = messagingEvent.sender.id
+  var payload = messagingEvent.postback.payload
+
+  if(payload){
+    sendTextMessage(senderID, "Received payload")
+  }
+
 }
 
 //Message was read by the user
@@ -89,13 +132,12 @@ function receivedMessage(messagingEvent) {
   var timeOfMessage = messagingEvent.timestamp;
   var message = messagingEvent.message;
   var messageText = message.text;
-  
+
 
     console.log('Received a message for user %d and page %d at %d with message:', senderID, recipientID, timeOfMessage);
     console.log(JSON.stringify(message));
 
     fillFirstEmptyJexiaField(senderID, messageText);
-
 
     
 }
@@ -110,12 +152,13 @@ function sendGenericMessage(recipientId, message) {
     },
     message
   };
-
-  console.log("MESSAGE " + JSON.stringify(messageData));
   
 
   callSendAPI(messageData);
 }
+
+
+
 
 function createSearchResultMessage(data) {
   var length = data.length;
@@ -132,7 +175,14 @@ function createSearchResultMessage(data) {
               type: "web_url",
               url: link,
               title: "Open Web URL"
-            }]
+            },
+            {
+              type: "postback",
+              payload: "search again" ,
+              title: "search again"
+            }
+
+            ]
           });
   }
 
@@ -186,7 +236,7 @@ function sendWelcomeBack(senderID){
 function sendLocationMessage(senderID){
     //var senderID = senderID;
 
-    sendTextMessage(senderID, "Please give me the postcode of the city you want me to look")
+    sendTextMessage(senderID, "Please give me the name of the city you want me to look")
 
 }
 //question 3
@@ -197,7 +247,7 @@ function sendPropertyTypeMessage(senderID){
 //question 4
 function sendRoomNumberMessage(senderID){
 
-  sendTextMessage(senderID, "How many rooms should your property have?")
+  sendTextMessage(senderID, "What is the minimal amount of rooms your property should have?")
 }
 //question 5
 function sendMaxPriceMessage(senderID){
@@ -211,13 +261,14 @@ function sendStartMessage(senderID){
 }
 //search
 function sendResultMessage(senderID){
-  sendTextMessage(senderID, "I found this result for you")
+  sendTextMessage(senderID, "I found results for you")
 }
 
 //Can't find a record
 function sendNoRecord(senderID){
   sendTextMessage(senderID, "Sorry I couldn't find any result")
 }
+
 
 
 //callsendAPI calls the Send API
@@ -244,39 +295,6 @@ function callSendAPI(messageData) {
 }
 
 
-//Authentication Jexia
-function getAuth(callback){
-
-var headers = {
-  'key':'79514f8aa35fb6d41723f08ef044d699', 
-  'secret':'308d06f94e966e5dadee5afdcfe94b7c1e2bfbe260d193a7'
-
-}
-
-var options = {
-'url':' https://afe21f70-58ac-11e6-9400-bf08cc0779e0.app.jexia.com ',
-'method': 'POST',
-'form': headers 
-}
-
-
-  function callBack(error, response, body){
-
-     
-   var body = JSON.parse(body);
-
-   token = body.token;
-   var refreshtoken = body.refresh_token
-   console.log("token" + token);
-   console.log("refreshtoken" + refreshtoken)
-  
-  
-    }
-    request(options, callBack)
-
-}
-
-getAuth();
 
 //Check first empty field
 function fillFirstEmptyJexiaField(userid, message) {
@@ -303,22 +321,22 @@ function fillFirstEmptyJexiaField(userid, message) {
       console.log("userRecordPrice" + userRecordPrice)
 
 
-    if(userRecordPostcode == undefined){
+    if((userRecordPostcode == undefined) || (userRecordPostcode == null)){
       storePostcode(userid, message, jexiaRecordId);
       sendPropertyTypeMessage(userid);
 
 
-      }else if(userRecordType == undefined){
+      }else if((userRecordType == undefined) || (userRecordType == null)){
 
         storePropertyType(userid, message, jexiaRecordId)
         sendRoomNumberMessage(userid)
 
-      }else if(userRecordRooms == undefined){
+      }else if((userRecordRooms == undefined) || (userRecordRooms == null)){
         storeRoomNumber(userid, message, jexiaRecordId)
         sendMaxPriceMessage(userid);
 
 
-      }else if (userRecordPrice == undefined){
+      }else if ((userRecordPrice == undefined) || (userRecordPrice == null)){
         storeMaxPrice(userid, message, jexiaRecordId)
         sendStartMessage(userid);
 
@@ -331,13 +349,13 @@ function fillFirstEmptyJexiaField(userid, message) {
             sendNoRecord(userid, message);
           }
 
+
           console.log("I found this" + JSON.stringify(data))
 
-          sendResultMessage(userid)
-          
+          sendResultMessage(userid)          
           var message = createSearchResultMessage(data)
- 
-          sendGenericMessage(userid, message)       
+          sendGenericMessage(userid, message)
+
         
         }).catch(function(e){
             console.log("Something went wrong: " + e)
@@ -352,6 +370,34 @@ function fillFirstEmptyJexiaField(userid, message) {
 
 }
 
+//Delete the user Record
+function deleteJexiaRecord(userid, jexia_id){
+
+  return new Promise (function(resolve, reject){
+
+    request({
+      url:'https://afe21f70-58ac-11e6-9400-bf08cc0779e0.app.jexia.com/User/' + jexia_id,
+      method: 'DELETE',
+      json:true,
+      headers: {'Authorization': 'Bearer' + token}
+
+
+    }, function(error, response, body){
+      if(error){
+        console.log(error)
+      }if(body.length === 0){
+          resolve(body);
+      }else{
+
+
+      }
+
+    })
+  })
+
+}
+
+
 //Get the Jexia record for the user
 function getJexiaUserRecord(userid){
 
@@ -365,11 +411,7 @@ function getJexiaUserRecord(userid){
 
     }, function(error, response, body){
         if(error){
-
-          console.log(error)
-        }if(body.length === 0){
-          resolve(body);
-
+          console.log(error);
         }else{
            var userRecord = body
            console.log("this is the body" + userRecord)
@@ -500,7 +542,7 @@ function startSearch(userid, postcode, type, rooms, price){
   //var query = querystring.stringify({postcode:[postcode], type:[type], rooms:[rooms], price:[price]})
   console.log("This is the query" + url)
 
-return new Promise(function (resolve, reject){
+    return new Promise(function (resolve, reject){
 
     request({
       url:url, 
@@ -513,20 +555,15 @@ return new Promise(function (resolve, reject){
 
           console.log(error)
 
-        }if(body.length === 0){
-          resolve(body);
-
-
         }else{
            var propertyRecord = body
 
-                console.log("this is the body of startSearch" + propertyRecord)
+           console.log("this is the body of startSearch" + propertyRecord)
 
-                resolve(propertyRecord);
+          resolve(propertyRecord);
 
-            }
-            
-           
+        }
+                     
         
    })
   })
